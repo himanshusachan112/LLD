@@ -1,175 +1,115 @@
-#include <iostream>
-#include <vector>
-#include <string>
+#include<bits/stdc++.h>
 #include<fstream>
-
 using namespace std;
 
-// Abstraction for document elements
-class DocumentElement {
-public:
-    virtual string render() = 0;
+class doc_element{  // abstract
+    public:
+    virtual string render()=0;
 };
-
-// Concrete implementation for text elements
-class TextElement : public DocumentElement {
-private:
+class text_element : public doc_element{
     string text;
-
-public:
-    TextElement(string text) {
-        this->text = text;
+    public:
+    text_element(string text){
+        this->text=text;
     }
-
-    string render() override {
+    string render() override{
         return text;
     }
 };
-
-// Concrete implementation for image elements
-class ImageElement : public DocumentElement {
-private:
-    string imagePath;
-
-public:
-    ImageElement(string imagePath) {
-        this->imagePath = imagePath;
+class image_element : public doc_element{
+    string imagepath;
+    public:
+    image_element(string path){
+        this->imagepath=path;
     }
-
-    string render() override {
-        return "[Image: " + imagePath + "]";
+    string render() override{
+        return "[image : "+ imagepath + "]";
     }
 };
 
-// NewLineElement represents a line break in the document.
-class NewLineElement : public DocumentElement {
-public:
-    string render() override {
-        return "\n";
+class document{
+    vector<doc_element*> elements;
+    public:
+    void add_element(doc_element *element){
+        elements.push_back(element);
     }
-};
-
-// TabSpaceElement represents a tab space in the document.
-class TabSpaceElement : public DocumentElement {
-public:
-    string render() override {
-        return "\t";
-    }
-};
-
-// Document class responsible for holding a collection of elements
-class Document {
-private:
-    vector<DocumentElement*> documentElements;
-
-public:
-    void addElement(DocumentElement* element) {
-        documentElements.push_back(element);
-    }
-
-    // Renders the document by concatenating the render output of all elements.
-    string render() {
-        string result;
-        for (auto element : documentElements) {
-            result += element->render();
+    string get_elements(){
+        string res="";
+        for(auto element:elements){
+            res+=element->render() + '\n';
         }
-        return result;
+        return res;
     }
 };
 
-// Persistence abstraction
-class Persistence {
-public:
-    virtual void save(string data) = 0;
+class persistance{  // // abstract
+    public:
+    virtual void save(string data)=0;
 };
-
-// FileStorage implementation of Persistence
-class FileStorage : public Persistence {
-public:
+class file_storage : public persistance{
+    public:
     void save(string data) override {
-        ofstream outFile("document.txt");
-        if (outFile) {
-            outFile << data;
-            outFile.close();
-            cout << "Document saved to document.txt" << endl;
-        } else {
-            cout << "Error: Unable to open file for writing." << endl;
+        ofstream fout("document.txt");
+        if(fout){
+            fout<<data;
+            fout.close();
+            cout<<"data saved to document.txt"<<endl;
         }
+        else cout<<"unable to open file for writing"<<endl;
+    }
+};
+class db_storage : public persistance{  
+    public:
+    void save(string data) override{
+        cout<<"data saved to database"<<endl;
     }
 };
 
-// Placeholder DBStorage implementation
-class DBStorage : public Persistence {
-public:
-    void save(string data) override {
-        // Save to DB
+class doc_render{
+    public:
+    document *doc;
+    doc_render(document *doc){
+        this->doc=doc;
+    }
+    string render(){
+        return doc->get_elements();
     }
 };
 
-// DocumentEditor class managing client interactions
-class DocumentEditor {
-private:
-    Document* document;
-    Persistence* storage;
-    string renderedDocument;
-
-public:
-    DocumentEditor(Document* document, Persistence* storage) {
-        this->document = document;
-        this->storage = storage;
+class doc_editor{
+    public:
+    document *doc;
+    doc_editor(document *doc){
+        this->doc=doc;
     }
-
-    void addText(string text) {
-        document->addElement(new TextElement(text));
+    void addtext(string text){
+        doc->add_element(new text_element(text));
     }
-
-    void addImage(string imagePath) {
-        document->addElement(new ImageElement(imagePath));
-    }
-
-    // Adds a new line to the document.
-    void addNewLine() {
-        document->addElement(new NewLineElement());
-    }
-
-    // Adds a tab space to the document.
-    void addTabSpace() {
-        document->addElement(new TabSpaceElement());
-    }
-
-    string renderDocument() {
-        if(renderedDocument.empty()) {
-            renderedDocument = document->render();
-        }
-        return renderedDocument;
-    }
-
-    void saveDocument() {
-        storage->save(renderDocument());
+    void addimage(string path){
+        doc->add_element(new image_element(path));
     }
 };
 
-// Client usage example
-int main() {
-    Document* document = new Document();
-    Persistence* persistence = new FileStorage();
 
-    DocumentEditor* editor = new DocumentEditor(document, persistence);
+int main(){
 
-    // Simulate a client using the editor with common text formatting features.
-    editor->addText("Hello, world!");
-    editor->addNewLine();
-    editor->addText("This is a real-world document editor example.");
-    editor->addNewLine();
-    editor->addTabSpace();
-    editor->addText("Indented text after a tab space.");
-    editor->addNewLine();
-    editor->addImage("picture.jpg");
+    document *Document= new document();
+    doc_editor *editor=new doc_editor(Document);
+    file_storage *filesaver= new file_storage();
+    doc_render *renderer=new doc_render(Document);
 
-    // Render and display the final document.
-    cout << editor->renderDocument() << endl;
+    editor->addtext("hello this is first text");
+    editor->addtext("hello this is  secon text");
+    editor->addimage("picltur.png");
 
-    editor->saveDocument();
+    string data=renderer->render();
+    cout<<data<<endl;
 
+    filesaver->save(data);
+    editor->addtext("hello this is third text");
+    data=renderer->render();
+    filesaver->save(data);
     return 0;
+    
+
 }

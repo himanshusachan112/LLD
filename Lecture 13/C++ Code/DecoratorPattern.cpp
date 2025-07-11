@@ -16,6 +16,9 @@ public:
     string getAbilities() const override {
         return "Mario";
     }
+    ~Mario(){
+        cout<<"destroying Mario character"<<endl;
+    }
 };
 
 // Abstract Decorator: CharacterDecorator "is-a" Charatcer and "has-a" Character.
@@ -26,6 +29,7 @@ public:
     CharacterDecorator(Character* c){
         this->character = c;
     }
+    virtual ~CharacterDecorator(){}
 
 };
 
@@ -37,6 +41,11 @@ public:
     string getAbilities() const override {
         return character->getAbilities() + " with HeightUp";
     }
+    ~HeightUp() {
+        cout << "Destroying HeightUp Decorator" << endl;
+        delete character;
+    }
+    
     
 };
 
@@ -47,6 +56,10 @@ public:
     
     string getAbilities() const override {
         return character->getAbilities() + " with Gun";
+    }
+    ~GunPowerUp() {
+        cout << "Destroying GunPowerUp Decorator" << endl;
+        delete character;
     }
 };
 
@@ -61,27 +74,34 @@ public:
     
     ~StarPowerUp() {
         cout << "Destroying StarPowerUp Decorator" << endl;
+        delete character;
     }
 };
 
 int main() {
     // Create a basic Mario character.
     Character* mario = new Mario();
-    cout << "Basic Character: " << mario->getAbilities() << endl;
+    // cout << "Basic Character: " << mario->getAbilities() << endl;
 
-    // Decorate Mario with a HeightUp power-up.
-    mario = new HeightUp(mario);
-    cout << "After HeightUp: " << mario->getAbilities() << endl;
+    // // Decorate Mario with a HeightUp power-up.
+    // mario = new HeightUp(mario);
+    // cout << "After HeightUp: " << mario->getAbilities() << endl;
 
-    // Decorate Mario further with a GunPowerUp.
-    mario = new GunPowerUp(mario);
-    cout << "After GunPowerUp: " << mario->getAbilities() << endl;
+    // // Decorate Mario further with a GunPowerUp.
+    // mario = new GunPowerUp(mario);
+    // cout << "After GunPowerUp: " << mario->getAbilities() << endl;
 
     // Finally, add a StarPowerUp decoration.
-    mario = new StarPowerUp(mario);
-    cout << "After StarPowerUp: " << mario->getAbilities() << endl;
+    mario = new StarPowerUp(new GunPowerUp(new HeightUp(new Mario())));
+    cout << mario->getAbilities() << endl;
 
     delete mario;
 
     return 0;
 }
+
+// Mario with HeightUp with Gun with Star Power (Limited Time)
+// Destroying StarPowerUp Decorator
+// Destroying GunPowerUp Decorator
+// Destroying HeightUp Decorator
+// destroying Mario character
